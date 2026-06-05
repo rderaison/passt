@@ -64,11 +64,13 @@ void udp_flow_close(const struct ctx *c, struct udp_flow *uflow)
  * @c:		Execution context
  * @uflow:	UDP flow to open socket for
  * @sidei:	Side of @uflow to open socket for
+ * @now:	Current timestamp
  *
  * Return: fd of new socket on success, -ve error code on failure
  */
 static int udp_flow_sock(const struct ctx *c,
-			 struct udp_flow *uflow, unsigned sidei)
+			 struct udp_flow *uflow, unsigned sidei,
+			 const struct timespec *now)
 {
 	const struct flowside *side = &uflow->f.side[sidei];
 	uint8_t pif = uflow->f.pif[sidei];
@@ -77,7 +79,8 @@ static int udp_flow_sock(const struct ctx *c,
 
 	s = flowside_sock_l4(c, EPOLL_TYPE_UDP, pif, side);
 	if (s < 0) {
-		flow_dbg_perror(uflow, "Couldn't open flow specific socket");
+		flow_perror_ratelimit(uflow, now,
+				      "Couldn't open flow specific socket");
 		return s;
 	}
 
@@ -92,8 +95,9 @@ static int udp_flow_sock(const struct ctx *c,
 		epoll_del(flow_epollfd(&uflow->f), s);
 		close(s);
 
-		flow_dbg(uflow, "Couldn't connect flow socket: %s",
-			 strerror_(-rc));
+		flow_warn_ratelimit(uflow, now,
+				    "Couldn't connect flow socket: %s",
+				    strerror_(-rc));
 		return rc;
 	}
 	uflow->s[sidei] = s;
@@ -154,7 +158,7 @@ static flow_sidx_t udp_flow_new(const struct ctx *c, union flow *flow,
 
 	flow_foreach_sidei(sidei) {
 		if (pif_is_socket(uflow->f.pif[sidei]))
-			if (udp_flow_sock(c, uflow, sidei) < 0)
+			if (udp_flow_sock(c, uflow, sidei, now) < 0)
 				goto cancel;
 	}
 
@@ -176,7 +180,7 @@ static flow_sidx_t udp_flow_new(const struct ctx *c, union flow *flow,
 			goto cancel;
 		}
 		if (port != tgt->oport) {
-			flow_err(uflow, "Unexpected local port");
+			flow_err_ratelimit(uflow, now, "Unexpected local port");
 			goto cancel;
 		}
 	}
@@ -248,7 +252,8 @@ flow_sidx_t udp_flow_from_sock(const struct ctx *c, uint8_t pif,
 		 * been initiated from a socket bound to 0.0.0.0 or ::, we don't
 		 * know our address, so we have to leave it unpopulated.
 		 */
-		flow_err(flow, "Invalid endpoint on UDP recvfrom()");
+		flow_err_ratelimit(flow, now,
+				   "Invalid endpoint on UDP recvfrom()");
 		flow_alloc_cancel(flow);
 		return FLOW_SIDX_NONE;
 	}

@@ -251,7 +251,7 @@ static void passt_worker(void *opaque, int nfds, struct epoll_event *events)
 			pasta_netns_quit_timer_handler(c, ref);
 			break;
 		case EPOLL_TYPE_TCP:
-			tcp_sock_handler(c, ref, eventmask);
+			tcp_sock_handler(c, ref, eventmask, &now);
 			break;
 		case EPOLL_TYPE_TCP_SPLICE:
 			tcp_splice_sock_handler(c, ref, eventmask, &now);
@@ -260,7 +260,7 @@ static void passt_worker(void *opaque, int nfds, struct epoll_event *events)
 			tcp_listen_handler(c, ref, &now);
 			break;
 		case EPOLL_TYPE_TCP_TIMER:
-			tcp_timer_handler(c, ref);
+			tcp_timer_handler(c, ref, &now);
 			break;
 		case EPOLL_TYPE_UDP_LISTEN:
 			udp_listen_sock_handler(c, ref, eventmask, &now);
@@ -269,7 +269,7 @@ static void passt_worker(void *opaque, int nfds, struct epoll_event *events)
 			udp_sock_handler(c, ref, eventmask, &now);
 			break;
 		case EPOLL_TYPE_PING:
-			icmp_sock_handler(c, ref);
+			icmp_sock_handler(c, ref, &now);
 			break;
 		case EPOLL_TYPE_VHOST_CMD:
 			vu_control_handler(c->vdev, c->fd_tap, eventmask);
@@ -302,7 +302,7 @@ static void passt_worker(void *opaque, int nfds, struct epoll_event *events)
 
 	post_handler(c, &now);
 
-	migrate_handler(c);
+	migrate_handler(c, &now);
 }
 
 /**
