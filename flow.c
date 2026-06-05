@@ -259,7 +259,7 @@ int flowside_sock_l4(const struct ctx *c, enum epoll_type type, uint8_t pif,
  *
  * Connect @s to the endpoint address and port from @tgt.
  *
- * Return: 0 on success, negative on error
+ * Return: 0 on success, negative error code on error
  */
 int flowside_connect(const struct ctx *c, int s,
 		     uint8_t pif, const struct flowside *tgt)
@@ -267,7 +267,9 @@ int flowside_connect(const struct ctx *c, int s,
 	union sockaddr_inany sa;
 
 	pif_sockaddr(c, &sa, pif, &tgt->eaddr, tgt->eport);
-	return connect(s, &sa.sa, socklen_inany(&sa));
+	if (connect(s, &sa.sa, socklen_inany(&sa)) < 0)
+		return -errno;
+	return 0;
 }
 
 /** flow_log__ - Log flow-related message, internal helper

@@ -3744,8 +3744,8 @@ static int tcp_flow_repair_connect(const struct ctx *c,
 
 	rc = flowside_connect(c, conn->sock, PIF_HOST, tgt);
 	if (rc) {
-		rc = -errno;
-		flow_perror(conn, "Failed to connect migrated socket");
+		flow_err(conn, "Failed to connect migrated socket: %s",
+			 strerror_(-rc));
 		return rc;
 	}
 

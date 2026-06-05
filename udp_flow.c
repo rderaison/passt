@@ -88,13 +88,12 @@ static int udp_flow_sock(const struct ctx *c,
 		return rc;
 	}
 
-	if (flowside_connect(c, s, pif, side) < 0) {
-		rc = -errno;
-
+	if ((rc = flowside_connect(c, s, pif, side)) < 0) {
 		epoll_del(flow_epollfd(&uflow->f), s);
 		close(s);
 
-		flow_dbg_perror(uflow, "Couldn't connect flow socket");
+		flow_dbg(uflow, "Couldn't connect flow socket: %s",
+			 strerror_(-rc));
 		return rc;
 	}
 	uflow->s[sidei] = s;
