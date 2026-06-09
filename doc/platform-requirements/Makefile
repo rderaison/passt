@@ -4,9 +4,9 @@
 # Author: David Gibson <david@gibson.dropbear.id.au>
 
 TARGETS = reuseaddr-priority recv-zero udp-close-dup listen-vs-repair \
-	tcp-close-rst
+	tcp-close-rst multicast-local-addr
 SRCS = reuseaddr-priority.c recv-zero.c udp-close-dup.c listen-vs-repair.c \
-	tcp-close-rst.c
+	tcp-close-rst.c multicast-local-addr.c
 CFLAGS = -Wall
 
 all: cppcheck clang-tidy $(TARGETS:%=check-%)

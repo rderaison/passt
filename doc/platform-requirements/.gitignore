@@ -3,3 +3,4 @@
 /recv-zero
 /tcp-close-rst
 /udp-close-dup
+/multicast-local-addr

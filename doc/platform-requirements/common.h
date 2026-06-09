@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define ARRAY_SIZE(a)		((int)(sizeof(a) / sizeof((a)[0])))
+
 __attribute__((format(printf, 1, 2), noreturn))
 static inline void die(const char *fmt, ...)
 {
